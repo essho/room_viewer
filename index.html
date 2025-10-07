@@ -1,662 +1,854 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <title>مصمم الغرف ثلاثي الأبعاد - نسخة Pro (IDB)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <title>✅ مصمم الغرف ثلاثي الأبعاد - عصام الكهربائي</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- توقع وجود هذه الملفات محليًا -->
-  <script src="./three.min.js"></script>
-  <script src="./OrbitControls.js"></script>
-  <script src="./GLTFExporter.js"></script>
-  <script src="./GLTFLoader.js"></script>
+    <script src="./three.min.js"></script>
+    <script src="./OrbitControls.js"></script>
+    <script src="./GLTFExporter.js"></script>
+    <script src="./GLTFLoader.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 
-  <style>
-    :root { --bg:#f6f7fb; --panel:#eef0f4; --ink:#1f2937; --line:#dadde3; --brand:#2563eb; }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg); color:#111; min-height:100vh; display:flex; flex-direction:column; }
+    
+    <style>
+        /* 1. تصميم الجسم (Body) الرئيسي */
+        body { 
+            margin: 0; font-family: system-ui, sans-serif; background: #f6f7fb; 
+            display: flex; flex-direction: column; min-height: 100vh; 
+            position: relative;
+        }
+        header { background: #1f2937; color: #fff; padding: 10px 14px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+        header h2 { margin: 0; font-size: 18px; }
+        
+        /* 2. شريط الأدوات (Toolbar) المحسَّن */
+        #toolbar { 
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; 
+            padding: 8px; background: #eef0f4; border-bottom: 1px solid #dadde3;
+            flex-shrink: 0;
+            justify-content: flex-start;
+        }
+        
+        /* 3. حاويات التحكم */
+        .control-group { padding: 5px; border: 1px solid #dadde3; border-radius: 6px; background: #fff; display: flex; flex-direction: column; gap: 6px; width: 180px; }
+        .control-group h4 { margin: 0; font-size: 13px; padding-bottom: 3px; border-bottom: 1px solid #eee; font-weight: 600; }
 
-    header { background:var(--ink); color:#fff; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; }
-    header h2 { margin:0; font-size:18px; }
+        .dim-input { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .dim-input input { width: 40px; padding: 3px; border: 1px solid #ccc; border-radius: 3px; }
 
-    #toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:stretch; padding:10px; background:var(--panel); border-bottom:1px solid var(--line); overflow-x:auto; scroll-snap-type:x mandatory; }
-    .control-group { min-width:200px; scroll-snap-align:start; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:8px; }
-    .control-group h4 { margin:0; font-size:13px; font-weight:700; color:#111; padding-bottom:6px; border-bottom:1px dashed #e7e7e7; }
+        .file-row { display: flex; align-items: center; gap: 4px; justify-content: space-between; font-size: 12px; }
+        .file-row label { flex-shrink: 0; width: 45px; }
+        .file-upload-btn { flex-grow: 1; text-align: center; padding: 4px 6px; font-size: 12px; }
 
-    .dim-input { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; }
-    .dim-input input { width:80px; padding:6px 7px; border:1px solid #c9d0dc; border-radius:6px; font-size:13px; }
+        .btn { padding: 6px 8px; border: 1px solid #cbd3df; border-radius: 6px; background: #fff; cursor: pointer; transition: background-color 0.2s; font-size: 13px; }
+        .btn.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+        .btn:disabled { opacity: .6; cursor: not-allowed; }
+        
+        .preview { border: 1px dashed #cbd3df; border-radius: 4px; height: 28px; width: 28px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fafbff; flex-shrink: 0; }
+        .preview small { font-size: 9px; }
+        .preview img { max-width: 100%; max-height: 100%; display: block; object-fit: contain; }
 
-    .file-row { display:flex; align-items:center; gap:6px; justify-content:space-between; font-size:12px; }
-    .file-row > label:first-child { min-width:60px; }
-    .file-upload-btn { display:inline-block; padding:6px 8px; border:1px solid #cbd3df; border-radius:6px; background:#fff; cursor:pointer; }
-    .file-upload-btn input { display:none; }
-    .preview { border:1px dashed #cbd3df; border-radius:6px; height:36px; width:36px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#fafbff; flex-shrink:0; }
-    .preview img { max-width:100%; max-height:100%; display:block; object-fit:cover; }
+        /* 💡 زر اختيار اللون المباشر */
+        .color-picker-btn {
+            background: none;
+            border: 1px solid #ccc;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .color-picker-btn input[type="color"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
 
-    .btn { padding:7px 10px; border:1px solid #cbd3df; border-radius:8px; background:#fff; cursor:pointer; font-size:13px; }
-    .btn.primary { background:var(--brand); color:#fff; border-color:var(--brand); }
-    .btn:disabled { opacity:.6; cursor:not-allowed; }
+        /* 4. منطقة العرض (Canvas) الرئيسية: تأخذ الحيز المتبقي */
+        canvas { display: block; width: 100%; flex-grow: 1; background: #cfd5e1; }
 
-    #viewer-wrap { position:relative; flex:1 1 auto; min-height:280px; background:#cfd5e1; }
-    canvas#canvas3d { display:block; width:100%; height:100%; }
-    #fullscreen-btn { position:absolute; top:12px; right:12px; z-index:10; background:rgba(0,0,0,.65); color:#fff; border:none; border-radius:8px; padding:6px 10px; font-size:18px; cursor:pointer; line-height:1; backdrop-filter:blur(2px); }
-    #fullscreen-btn:active { transform: translateY(1px); }
+        /* 💡 حاوية الأدوات العلوية (فوق Canvas) */
+        #canvas-overlay-tools {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 10px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-    #crop-tool { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.92); align-items:center; justify-content:center; padding:16px; }
-    #crop-tool-content { max-width:95vw; max-height:92vh; width:980px; background:#fff; border-radius:12px; padding:10px 12px 14px; display:flex; flex-direction:column; gap:8px; }
-    #crop-toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; border:1px solid #e8ecf3; padding:8px; border-radius:8px; background:#f8fafc; }
-    #crop-toolbar .btn { padding:6px 8px; font-size:12px; }
-    #crop-toolbar .range { display:inline-flex; align-items:center; gap:6px; font-size:12px; }
-    #crop-toolbar input[type=range]{ width:160px; }
-    #crop-canvas-wrap { position:relative; overflow:auto; border:1px solid #e3e6ee; border-radius:10px; background:#f9fafc; }
-    #crop-canvas { display:block; max-width:100%; max-height:66vh; background:#fff; cursor:crosshair; }
+        /* 💡 زر ملء الشاشة وشدة الإضاءة */
+        #fullscreen-btn, #light-slider-btn {
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: none;
+            padding: 8px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        #light-slider-container {
+            display: flex; 
+            background: rgba(0,0,0,0.5);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        #light-slider-container input {
+            vertical-align: middle;
+        }
+        
+        /* 💡 تنسيق وضع ملء الشاشة (Canvas) */
+        .fullscreen-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 999;
+        }
 
-    @media (max-width: 640px){
-      .control-group { min-width:180px; }
-      .dim-input input { width:72px; }
-      .btn { padding:6px 8px; font-size:12px; }
-      #fullscreen-btn { font-size:16px; padding:6px 9px; }
-      #crop-toolbar input[type=range]{ width:120px; }
-    }
-  </style>
+        /* 5. أداة القص (Cropping Tool) */
+        #crop-tool { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; }
+        #crop-tool-content { background: #fff; padding: 15px; border-radius: 10px; max-width: 95%; max-height: 95%; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* 💡 تحكمات القص (الواجهة الجديدة) */
+        #crop-controls {
+            flex-shrink: 0;
+            padding: 10px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        #crop-actions { display: flex; justify-content: center; gap: 10px; margin-top: 15px; flex-shrink: 0; }
+        #crop-container { flex-grow: 1; overflow: auto; max-height: 70vh; margin-bottom: 10px; }
+        #crop-image { max-width: 100%; display: block; }
+        
+        /* 💡 دوران دقيق */
+        #rotate-controls { display: flex; gap: 5px; align-items: center; font-size: 13px; }
+        #rotate-controls input[type="number"] { width: 40px; padding: 3px; border: 1px solid #ccc; border-radius: 3px; text-align: center; }
+        #rotate-slider { width: 100px; }
+    </style>
 </head>
 <body>
 
-  <header><h2>مصمم الغرف ثلاثي الأبعاد (Pro)</h2></header>
+<header>
+    <h2>✅ مصمم الغرف ثلاثي الأبعاد</h2>
+</header>
 
-  <!-- الأدوات -->
-  <div id="toolbar">
-    <div class="control-group">
-      <h4>مقاسات الغرفة (متر)</h4>
-      <div class="dim-input"><label for="room-length">الطول (X)</label><input type="number" id="room-length" value="5" step="0.1" min="1"></div>
-      <div class="dim-input"><label for="room-width">العرض (Z)</label><input type="number" id="room-width" value="5" step="0.1" min="1"></div>
-      <div class="dim-input"><label for="room-height">الارتفاع (Y)</label><input type="number" id="room-height" value="3" step="0.1" min="2"></div>
-      <button class="btn primary" id="update-room">إنشاء/تحديث</button>
+<div id="toolbar">
+    <div id="dim-controls" class="control-group">
+        <h4>مقاسات الغرفة</h4>
+        <div class="dim-input">
+            <label for="room-length">الطول (X):</label>
+            <input type="number" id="room-length" value="5" min="1" step="0.1">
+        </div>
+        <div class="dim-input">
+            <label for="room-width">العرض (Z):</label>
+            <input type="number" id="room-width" value="5" min="1" step="0.1">
+        </div>
+        <div class="dim-input">
+            <label for="room-height">الارتفاع (Y):</label>
+            <input type="number" id="room-height" value="3" min="1" step="0.1">
+        </div>
+        <button class="btn primary" id="update-room">إنشاء/تحديث</button>
     </div>
 
-    <div class="control-group">
-      <h4>صور الجدران</h4>
-      <div class="file-row">
-        <label>أمامي</label><label class="file-upload-btn">رفع
-          <input type="file" accept="image/*" data-wall="front"></label>
-        <div class="preview" id="preview-front"></div>
-      </div>
-      <div class="file-row">
-        <label>خلفي</label><label class="file-upload-btn">رفع
-          <input type="file" accept="image/*" data-wall="back"></label>
-        <div class="preview" id="preview-back"></div>
-      </div>
-      <div class="file-row">
-        <label>أيسر</label><label class="file-upload-btn">رفع
-          <input type="file" accept="image/*" data-wall="left"></label>
-        <div class="preview" id="preview-left"></div>
-      </div>
-      <div class="file-row">
-        <label>أيمن</label><label class="file-upload-btn">رفع
-          <input type="file" accept="image/*" data-wall="right"></label>
-        <div class="preview" id="preview-right"></div>
-      </div>
+    <div id="wall-files" class="control-group">
+        <h4>صور الجدران</h4>
+        <div class="file-row">
+            <label>أمامي:</label>
+            <label class="btn file-upload-btn"> رفع <input type="file" data-wall="front" accept="image/*" class="file-input" style="display:none"></label>
+            <button class="color-picker-btn" data-wall="front" title="لون ثابت">
+                🎨<input type="color" class="color-input">
+            </button>
+            <div class="preview" id="preview-front"><small>F</small></div>
+        </div>
+        <div class="file-row">
+            <label>خلفي:</label>
+            <label class="btn file-upload-btn"> رفع <input type="file" data-wall="back" accept="image/*" class="file-input" style="display:none"></label>
+            <button class="color-picker-btn" data-wall="back" title="لون ثابت">
+                🎨<input type="color" class="color-input">
+            </button>
+            <div class="preview" id="preview-back"><small>B</small></div>
+        </div>
+        <div class="file-row">
+            <label>أيسر:</label>
+            <label class="btn file-upload-btn"> رفع <input type="file" data-wall="left" accept="image/*" class="file-input" style="display:none"></label>
+            <button class="color-picker-btn" data-wall="left" title="لون ثابت">
+                🎨<input type="color" class="color-input">
+            </button>
+            <div class="preview" id="preview-left"><small>L</small></div>
+        </div>
+        <div class="file-row">
+            <label>أيمن:</label>
+            <label class="btn file-upload-btn"> رفع <input type="file" data-wall="right" accept="image/*" class="file-input" style="display:none"></label>
+            <button class="color-picker-btn" data-wall="right" title="لون ثابت">
+                🎨<input type="color" class="color-input">
+            </button>
+            <div class="preview" id="preview-right"><small>R</small></div>
+        </div>
     </div>
-
-    <div class="control-group">
-      <h4>أرضية وسقف</h4>
-      <div class="file-row">
-        <label>أرضية</label><label class="file-upload-btn">رفع
-          <input type="file" accept="image/*" data-wall="floor"></label>
-        <div class="preview" id="preview-floor"></div>
-      </div>
-      <div class="file-row">
-        <label>سقف</label><label class="file-upload-btn">رفع
-          <input type="file" accept="image/*" data-wall="ceiling"></label>
-        <div class="preview" id="preview-ceiling"></div>
-      </div>
+    
+    <div id="floor-ceiling-files" class="control-group">
+        <h4>أرضية وسقف</h4>
+        <div class="file-row">
+            <label>أرضية:</label>
+            <label class="btn file-upload-btn"> رفع <input type="file" data-wall="floor" accept="image/*" class="file-input" style="display:none"></label>
+            <button class="color-picker-btn" data-wall="floor" title="لون ثابت">
+                🎨<input type="color" class="color-input">
+            </button>
+            <div class="preview" id="preview-floor"><small>FL</small></div>
+        </div>
+        <div class="file-row">
+            <label>سقف:</label>
+            <label class="btn file-upload-btn"> رفع <input type="file" data-wall="ceiling" accept="image/*" class="file-input" style="display:none"></label>
+            <button class="color-picker-btn" data-wall="ceiling" title="لون ثابت">
+                🎨<input type="color" class="color-input">
+            </button>
+            <div class="preview" id="preview-ceiling"><small>C</small></div>
+        </div>
     </div>
-
-    <div class="control-group">
-      <h4>إجراءات</h4>
-      <button class="btn primary" id="exportGLB" disabled>💾 حفظ GLB</button>
-      <label class="btn">📂 تحميل GLB
-        <input type="file" id="importGLB" accept=".glb,.gltf"></label>
-      <button class="btn" id="clear-saved">🗑️ مسح المحفوظات</button>
+    
+    <div id="action-controls" class="control-group">
+        <h4>إجراءات</h4>
+        <button class="btn primary" id="exportGLB" disabled>💾 حفظ GLB</button>
+        <label class="btn">
+            📂 تحميل GLB
+            <input type="file" id="importGLB" accept=".glb,.gltf" style="display:none">
+        </label>
+        <button class="btn" id="clear-saved">🗑️ مسح المحفوظات</button>
     </div>
-  </div>
+</div>
 
-  <!-- العارض -->
-  <div id="viewer-wrap">
-    <button id="fullscreen-btn" title="تكبير/تصغير">⛶</button>
+<div style="position: relative; flex-grow: 1; width: 100%;">
     <canvas id="canvas3d"></canvas>
-  </div>
-
-  <!-- أداة القص -->
-  <div id="crop-tool" aria-hidden="true">
-    <div id="crop-tool-content" role="dialog" aria-modal="true">
-      <div id="crop-toolbar">
-        <button class="btn" id="zoom-in">➕ تكبير</button>
-        <button class="btn" id="zoom-out">➖ تصغير</button>
-        <button class="btn" id="rotate-90">🔄 90°</button>
-        <span class="range">↺ زاوية: <input type="range" id="rotate-range" min="-180" max="180" value="0"></span>
-        <button class="btn" id="reset-view">إعادة تعيين</button>
-        <div style="flex:1"></div>
-        <button class="btn" id="crop-cancel">إلغاء</button>
-        <button class="btn primary" id="crop-apply">تطبيق</button>
-      </div>
-      <div id="crop-canvas-wrap"><canvas id="crop-canvas"></canvas></div>
+    
+    <div id="canvas-overlay-tools">
+        <div id="light-slider-container">
+            <input type="range" id="light-intensity" min="0" max="3" step="0.1" value="0.8" title="شدة الإضاءة">
+        </div>
+        <button id="fullscreen-btn" title="ملء الشاشة">◻️</button>
     </div>
-  </div>
+</div>
 
-  <script>
-    // ============ متغيرات عامة ============
-    let renderer, scene, camera, controls;
-    let sceneGroup = new THREE.Group();
-    const textureLoader = new THREE.TextureLoader();
+<div id="crop-tool">
+    <div id="crop-tool-content">
+        <h3>أداة تعديل الصورة (القص والدوران)</h3>
+        
+        <div id="crop-controls">
+            <div id="rotate-controls" class="control-box">
+                <span>دوران (بالدرجة):</span>
+                <input type="range" id="rotate-slider" min="-180" max="180" step="1" value="0">
+                <input type="number" id="rotate-value" min="-360" max="360" step="1" value="0">
+            </div>
+            <div class="control-box">
+                <span>انعكاس:</span>
+                <div style="display: flex; gap: 5px;">
+                    <button data-method="scaleX" data-option="-1" title="انعكاس أفقي">↔️</button>
+                    <button data-method="scaleY" data-option="-1" title="انعكاس عمودي">↕️</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="crop-container">
+            <img id="crop-image" src="" alt="صورة للقص">
+        </div>
+        <div id="crop-actions">
+            <button class="btn primary" id="crop-apply">تطبيق وقص</button>
+            <button class="btn" id="crop-cancel">إلغاء</button>
+        </div>
+    </div>
+</div>
 
-    const ROOM = {
-      length: 5, width: 5, height: 3,
-      textures: { front:null, back:null, left:null, right:null, floor:null, ceiling:null }
-    };
-    const DEFAULTS = { wall:0xcccccc, floor:0x333333, ceiling:0xffffff, camEye:1.6 };
+<script>
+// --- متغيرات الحالة العامة ---
+let renderer, scene, camera, controls;
+let sceneGroup = new THREE.Group(); 
+const textureLoader = new THREE.TextureLoader(); 
+let cropperInstance = null; 
+let directionalLight = null; 
+let ambientLight = null; 
+let isFullscreen = false;   
+let autoRotateTimeout = null; 
 
-    // ======== مفاتيح/ثوابت عامة ========
-    const KEYS = ['front','back','left','right','floor','ceiling'];
-    const LS_PREFIX = 'room_pro_';
-    const lsKey = k => `${LS_PREFIX}${k}`;
-    for (const k of KEYS) if (!(k in ROOM.textures)) ROOM.textures[k] = null;
+const ROOM_DATA = {
+    length: 5, width: 5, height: 3, 
+    textures: { front: null, back: null, left: null, right: null, floor: null, ceiling: null }
+};
 
-    // ======== IndexedDB (تخزين الصور) ========
-    const DB_NAME = 'room_pro_db';
-    const DB_STORE = 'textures';
+const DEFAULT_CEILING_COLOR = 0xFFFFFF; 
+const DEFAULT_FLOOR_COLOR = 0x333333;   
+const DEFAULT_WALL_COLOR = 0xcccccc;    
+const CAMERA_HEIGHT = 1.6;              
+let currentWallToCrop = null; 
 
-    function idbOpen(){ return new Promise((resolve, reject)=>{
-      const req = indexedDB.open(DB_NAME, 1);
-      req.onupgradeneeded = ()=>{ const db = req.result; if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE); };
-      req.onsuccess = ()=>resolve(req.result);
-      req.onerror = ()=>reject(req.error);
-    });}
-    function idbPut(key, blob){ return idbOpen().then(db=> new Promise((resolve,reject)=>{
-      const tx = db.transaction(DB_STORE,'readwrite'); tx.objectStore(DB_STORE).put(blob, key);
-      tx.oncomplete=()=>{ db.close(); resolve(); }; tx.onerror=()=>{ db.close(); reject(tx.error); };
-    }));}
-    function idbGet(key){ return idbOpen().then(db=> new Promise((resolve,reject)=>{
-      const tx = db.transaction(DB_STORE,'readonly'); const req = tx.objectStore(DB_STORE).get(key);
-      req.onsuccess=()=>{ const v=req.result||null; db.close(); resolve(v); };
-      req.onerror=()=>{ db.close(); reject(req.error); };
-    }));}
-    function idbClear(){ return idbOpen().then(db=> new Promise((resolve,reject)=>{
-      const tx = db.transaction(DB_STORE,'readwrite'); tx.objectStore(DB_STORE).clear();
-      tx.oncomplete=()=>{ db.close(); resolve(); }; tx.onerror=()=>{ db.close(); reject(tx.error); };
-    }));}
+// --- وظائف المساعدة العامة ---
 
-    // ======== أدوات ضغط/تحويل ========
-    function loadImage(dataURL){ return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=dataURL; }); }
-    function canvasToBlob(canvas, mime='image/jpeg', quality=0.75){ return new Promise(res=>canvas.toBlob(b=>res(b||new Blob()), mime, quality)); }
-
-    // حفظ خامة: ضغط→Blob→IndexedDB، ثم توليد URL للاستخدام
-    async function saveTexture(key, dataURL){
-      const im = await loadImage(dataURL);
-      const sizes = [1280, 1024, 800, 640, 480];
-      const quals = [0.75, 0.65, 0.6, 0.55, 0.5];
-      let savedBlob = null, lastErr=null;
-
-      for (let i=0;i<sizes.length;i++){
-        const maxDim = sizes[i], q = quals[i];
-        const scale = Math.min(1, maxDim/im.width, maxDim/im.height);
-        const w = Math.max(1, Math.round(im.width*scale));
-        const h = Math.max(1, Math.round(im.height*scale));
-        const c = document.createElement('canvas'); c.width=w; c.height=h;
-        const cx = c.getContext('2d'); cx.drawImage(im,0,0,w,h);
-        const blob = await canvasToBlob(c, 'image/jpeg', q);
-        try { await idbPut('tex_'+key, blob); savedBlob = blob; lastErr=null; break; }
-        catch(e){ lastErr=e; }
-      }
-      if (!savedBlob && lastErr){ console.warn('⚠️ IDB ممتلئ لهذه الخامة:', key, lastErr); }
-      ROOM.textures[key] = savedBlob ? URL.createObjectURL(savedBlob) : null;
-    }
-
-    async function getTextureURL(key){
-      const blob = await idbGet('tex_'+key);
-      return blob ? URL.createObjectURL(blob) : null;
-    }
-
-    // هجرة أي تخزين قديم (المفتاح الكبير أو مفاتيح room_pro_tex_*)
-    async function migrateLegacy(){
-      const toMove = [];
-      for (let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if (k && k.startsWith('room_pro_tex_')) toMove.push(k);
-      }
-      for (const k of toMove){
-        const val = localStorage.getItem(k);
-        if (val) {
-          const key = k.replace('room_pro_tex_','');
-          try { await saveTexture(key, val); } catch(e){ console.warn('هجرة فشلت:', key, e); }
+function disposeThreeObjects(group) {
+    if (!group) return;
+    group.traverse(child => {
+        if (child.isMesh) {
+            child.geometry.dispose();
+            if (Array.isArray(child.material)) {
+                child.material.forEach(m => {
+                    if (m.map) m.map.dispose();
+                    m.dispose();
+                });
+            } else {
+                if (child.material.map) child.material.map.dispose();
+                child.material.dispose();
+            }
         }
-        localStorage.removeItem(k);
-      }
-      const legacy = localStorage.getItem('room_config_pro');
-      if (legacy){
-        try {
-          const data = JSON.parse(legacy);
-          const tex = data.tex || {};
-          for (const k of KEYS){ if (tex[k]){ try { await saveTexture(k, tex[k]); } catch(e){} } }
-        } catch(e){ console.warn('هجرة المفتاح القديم فشلت:', e); }
-        localStorage.removeItem('room_config_pro');
-      }
-    }
-
-    // ============ حفظ/تحميل (الأبعاد فقط في LS) ============
-    function saveState(){
-      try {
-        const dims = { L: ROOM.length, W: ROOM.width, H: ROOM.height };
-        localStorage.setItem(lsKey('dims'), JSON.stringify(dims));
-      } catch(e){ console.warn('⚠️ تعذر حفظ الأبعاد:', e); }
-    }
-
-    async function loadState(){
-      try {
-        const raw = localStorage.getItem(lsKey('dims'));
-        if (raw){
-          const d = JSON.parse(raw);
-          ROOM.length = parseFloat(d.L) || ROOM.length;
-          ROOM.width  = parseFloat(d.W) || ROOM.width;
-          ROOM.height = parseFloat(d.H) || ROOM.height;
-        }
-      } catch {}
-
-      // جلب كل الصور من IndexedDB
-      await Promise.all(KEYS.map(async k=>{
-        const url = await getTextureURL(k);
-        ROOM.textures[k] = url;
-      }));
-
-      // مزامنة واجهة الحقول والمعاينات
-      document.getElementById('room-length').value = ROOM.length;
-      document.getElementById('room-width').value  = ROOM.width;
-      document.getElementById('room-height').value = ROOM.height;
-      KEYS.forEach(k=>{
-        const p = document.getElementById('preview-'+k);
-        if (p) p.innerHTML = ROOM.textures[k] ? '<img src="'+ROOM.textures[k]+'">' : '';
-      });
-
-      return true;
-    }
-
-    // ============ تهيئة العرض ============
-    function setViewerSize(){
-      const header = document.querySelector('header').offsetHeight;
-      const toolbar = document.getElementById('toolbar').offsetHeight;
-      const h = Math.max(280, window.innerHeight - header - toolbar);
-      const wrap = document.getElementById('viewer-wrap');
-      wrap.style.height = h + 'px';
-      if (renderer) {
-        renderer.setSize(wrap.clientWidth, wrap.clientHeight, false);
-        camera.aspect = wrap.clientWidth / wrap.clientHeight;
-        camera.updateProjectionMatrix();
-      }
-    }
-
-    function initThree(){
-      const canvas = document.getElementById('canvas3d');
-      renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false, powerPreference:'high-performance' });
-      renderer.setPixelRatio(window.devicePixelRatio || 1);
-      if ('SRGBColorSpace' in THREE) renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-      scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xEAEFF7);
-
-      camera = new THREE.PerspectiveCamera(70, 16/9, 0.1, 200);
-      const amb = new THREE.AmbientLight(0xffffff, 0.70);
-      const dir = new THREE.DirectionalLight(0xffffff, 0.85); dir.position.set(5, 6, 4);
-      scene.add(amb, dir);
-
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true; controls.dampingFactor = 0.05;
-      controls.screenSpacePanning = false; controls.maxPolarAngle = Math.PI * 0.9; controls.minDistance = 0.4;
-
-      window.addEventListener('resize', setViewerSize);
-      setViewerSize();
-      animate();
-    }
-    function animate(){ requestAnimationFrame(animate); controls && controls.update(); renderer.render(scene, camera); }
-
-    // ============ تحميل خامات ============
-    function loadTexture(url){
-      return new Promise((resolve)=>{
-        if (!url) return resolve(null);
-        textureLoader.load(url, (tex)=>{
-          if ('SRGBColorSpace' in THREE) tex.colorSpace = THREE.SRGBColorSpace;
-          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-          try { const aniso = renderer.capabilities.getMaxAnisotropy?.() || 0; if (aniso) tex.anisotropy = aniso; } catch {}
-          resolve(tex);
-        }, undefined, ()=>resolve(null));
-      });
-    }
-
-    async function buildRoom(){
-      const L = parseFloat(ROOM.length), W = parseFloat(ROOM.width), H = parseFloat(ROOM.height);
-
-      scene.remove(sceneGroup);
-      disposeGroup(sceneGroup);
-      sceneGroup = new THREE.Group();
-
-      const tex = {};
-      for (const k of KEYS) tex[k] = await loadTexture(ROOM.textures[k]);
-
-      const wallDefs = [
-        { name:'Front_Wall', size:[L,H], pos:[0,0,-W/2], rot:[0, 0, 0],        key:'front'   },
-        { name:'Back_Wall',  size:[L,H], pos:[0,0, W/2], rot:[0, Math.PI, 0],  key:'back'    },
-        { name:'Right_Wall', size:[W,H], pos:[L/2,0, 0], rot:[0,-Math.PI/2,0], key:'right'   },
-        { name:'Left_Wall',  size:[W,H], pos:[-L/2,0,0], rot:[0, Math.PI/2,0], key:'left'    },
-        { name:'Floor',      size:[L,W], pos:[0,-H/2,0], rot:[-Math.PI/2,0,0], key:'floor'   },
-        { name:'Ceiling',    size:[L,W], pos:[0, H/2,0], rot:[ Math.PI/2,0,0], key:'ceiling' }
-      ];
-
-      for (const w of wallDefs){
-        const map = tex[w.key];
-        const material = new THREE.MeshStandardMaterial({
-          map, side: THREE.DoubleSide,
-          color: map ? 0xffffff : (w.key==='floor'?DEFAULTS.floor:(w.key==='ceiling'?DEFAULTS.ceiling:DEFAULTS.wall))
-        });
-        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(...w.size), material);
-        mesh.position.set(...w.pos); mesh.rotation.set(...w.rot);
-
-        if (map && map.image && map.image.width && map.image.height){
-          const wallRatio = w.size[0] / w.size[1];
-          const imgRatio  = map.image.width / map.image.height;
-          if (imgRatio > wallRatio) map.repeat.set(wallRatio / imgRatio, 1);
-          else map.repeat.set(1, imgRatio / wallRatio);
-          map.offset.set((1 - map.repeat.x) / 2, (1 - map.repeat.y) / 2);
-          map.needsUpdate = true;
-        }
-        sceneGroup.add(mesh);
-      }
-
-      camera.position.set(0, DEFAULTS.camEye - H/2, Math.max(L, W) * 0.95);
-      controls.target.set(0, DEFAULTS.camEye - H/2, 0);
-      controls.update();
-
-      scene.add(sceneGroup);
-      document.getElementById('exportGLB').disabled = sceneGroup.children.length === 0;
-      saveState(); // يحفظ الأبعاد فقط في LS
-    }
-
-    function disposeGroup(group){
-      group.traverse((obj)=>{
-        if (obj.isMesh){
-          obj.geometry?.dispose?.();
-          if (Array.isArray(obj.material)){
-            obj.material.forEach(m=>{ m.map?.dispose?.(); m.dispose?.(); });
-          } else { obj.material?.map?.dispose?.(); obj.material?.dispose?.(); }
-        }
-      });
-    }
-
-    // ============ أداة القص ============
-    const cropTool   = document.getElementById('crop-tool');
-    const cropCanvas = document.getElementById('crop-canvas');
-    const ctx        = cropCanvas.getContext('2d');
-    let img = new Image(), cropWallKey = null;
-
-    let zoom=1, minZoom=0.1, maxZoom=6, angle=0, panX=0, panY=0;
-    let draggingImage=false, lastX=0, lastY=0;
-
-    let sel = { x:50, y:50, w:200, h:120 };
-    const HANDLE = 8;
-    let dragMode = null;
-    function handles(){ return [
-      {k:'nw', x:sel.x, y:sel.y}, {k:'ne', x:sel.x+sel.w, y:sel.y},
-      {k:'sw', x:sel.x, y:sel.y+sel.h}, {k:'se', x:sel.x+sel.w, y:sel.y+sel.h},
-      {k:'n', x:sel.x+sel.w/2, y:sel.y}, {k:'s', x:sel.x+sel.w/2, y:sel.y+sel.h},
-      {k:'w', x:sel.x, y:sel.y+sel.h/2}, {k:'e', x:sel.x+sel.w, y:sel.y+sel.h/2},
-    ];}
-    function hitHandle(mx,my){
-      const hs = handles();
-      for (const h of hs){ if (Math.abs(mx-h.x)<=HANDLE && Math.abs(my-h.y)<=HANDLE) return h.k; }
-      if (mx>=sel.x && mx<=sel.x+sel.w && my>=sel.y && my<=sel.y+sel.h) return 'move';
-      return null;
-    }
-
-    function openCropUI(dataURL, wallKey){
-      cropWallKey = wallKey;
-      img = new Image();
-      img.onload = ()=>{
-        const maxW = Math.min(1800, window.innerWidth*0.9);
-        const maxH = Math.min(1000, window.innerHeight*0.66);
-        let cw = img.width, ch = img.height;
-        const scale = Math.min(maxW/cw, maxH/ch, 1);
-        cw = Math.floor(cw*scale); ch = Math.floor(ch*scale);
-        cropCanvas.width = cw; cropCanvas.height = ch;
-
-        zoom=1; angle=0; panX=0; panY=0;
-        sel = { x:cw*0.2, y:ch*0.2, w:cw*0.6, h:ch*0.6 };
-        document.getElementById('rotate-range').value = 0;
-        redraw();
-      };
-      img.src = dataURL;
-      cropTool.style.display='flex';
-      cropTool.setAttribute('aria-hidden','false');
-    }
-
-    function redraw(){
-      ctx.setTransform(1,0,0,1,0,0);
-      ctx.clearRect(0,0,cropCanvas.width,cropCanvas.height);
-
-      ctx.save();
-      ctx.translate(cropCanvas.width/2 + panX, cropCanvas.height/2 + panY);
-      ctx.rotate(angle);
-      ctx.scale(zoom, zoom);
-      ctx.drawImage(img, -img.width/2, -img.height/2);
-      ctx.restore();
-
-      ctx.save(); ctx.fillStyle='rgba(0,0,0,.35)';
-      ctx.fillRect(0,0,cropCanvas.width, sel.y);
-      ctx.fillRect(0, sel.y, sel.x, sel.h);
-      ctx.fillRect(sel.x+sel.w, sel.y, cropCanvas.width-(sel.x+sel.w), sel.h);
-      ctx.fillRect(0, sel.y+sel.h, cropCanvas.width, cropCanvas.height-(sel.y+sel.h));
-      ctx.restore();
-
-      ctx.save(); ctx.strokeStyle='#e11d48'; ctx.lineWidth=2; ctx.setLineDash([6,6]);
-      ctx.strokeRect(sel.x, sel.y, sel.w, sel.h); ctx.restore();
-
-      ctx.save(); ctx.fillStyle='#fff'; ctx.strokeStyle='#e11d48';
-      for (const h of handles()){ ctx.beginPath(); ctx.rect(h.x-HANDLE, h.y-HANDLE, HANDLE*2, HANDLE*2); ctx.fill(); ctx.stroke(); }
-      ctx.restore();
-    }
-
-    cropCanvas.addEventListener('mousedown', (e)=>{
-      const r = cropCanvas.getBoundingClientRect();
-      const mx = e.clientX - r.left, my = e.clientY - r.top;
-      lastX = mx; lastY = my;
-      const mode = hitHandle(mx,my);
-      if (mode){ dragMode = mode; return; }
-      if (e.altKey || e.which===2){ draggingImage = true; return; }
-      if (!(mx>=sel.x && mx<=sel.x+sel.w && my>=sel.y && my<=sel.y+sel.h)){
-        sel = { x:mx, y:my, w:0, h:0 }; dragMode='se';
-      } else { dragMode='move'; }
     });
-    cropCanvas.addEventListener('mousemove', (e)=>{
-      const r = cropCanvas.getBoundingClientRect();
-      const mx = e.clientX - r.left, my = e.clientY - r.top;
-      const dx = mx - lastX, dy = my - lastY;
+}
 
-      if (draggingImage){ panX += dx; panY += dy; lastX=mx; lastY=my; redraw(); return; }
-
-      if (dragMode){
-        if (dragMode==='move'){ sel.x += dx; sel.y += dy; }
-        else {
-          const left=sel.x, top=sel.y, right=sel.x+sel.w, bottom=sel.y+sel.h;
-          let nleft=left, nright=right, ntop=top, nbottom=bottom;
-          if (dragMode.includes('w')) nleft += dx;
-          if (dragMode.includes('e')) nright += dx;
-          if (dragMode.includes('n')) ntop += dy;
-          if (dragMode.includes('s')) nbottom += dy;
-          const minSize=10;
-          if (nright-nleft>=minSize){ sel.x=nleft; sel.w=nright-nleft; }
-          if (nbottom-ntop>=minSize){ sel.y=ntop; sel.h=nbottom-ntop; }
-        }
-        lastX=mx; lastY=my; redraw(); return;
-      }
-
-      const mode2 = hitHandle(mx,my);
-      const map = {n:'ns-resize',s:'ns-resize',e:'ew-resize',w:'ew-resize',ne:'nesw-resize',sw:'nesw-resize',nw:'nwse-resize',se:'nwse-resize',move:'move'};
-      cropCanvas.style.cursor = mode2 ? map[mode2] : (e.altKey ? 'grab' : 'crosshair');
-    });
-    window.addEventListener('mouseup', ()=>{ draggingImage=false; dragMode=null; });
-    cropCanvas.addEventListener('wheel', (e)=>{
-      e.preventDefault();
-      const f = (e.deltaY<0)?1.1:0.9;
-      const nz = Math.max(minZoom, Math.min(maxZoom, zoom*f));
-      if (nz===zoom) return;
-      const r = cropCanvas.getBoundingClientRect();
-      const mx = e.clientX - r.left, my = e.clientY - r.top;
-      const wx = mx - cropCanvas.width/2 - panX;
-      const wy = my - cropCanvas.height/2 - panY;
-      panX -= wx*(nz/zoom - 1);
-      panY -= wy*(nz/zoom - 1);
-      zoom = nz;
-      redraw();
-    }, {passive:false});
-
-    document.getElementById('zoom-in').addEventListener('click', ()=>{ zoom = Math.min(maxZoom, zoom*1.2); redraw(); });
-    document.getElementById('zoom-out').addEventListener('click', ()=>{ zoom = Math.max(minZoom, zoom/1.2); redraw(); });
-    document.getElementById('rotate-90').addEventListener('click', ()=>{ angle += Math.PI/2; if (angle>Math.PI*2) angle-=Math.PI*2; redraw(); document.getElementById('rotate-range').value = Math.round(angle*180/Math.PI); });
-    document.getElementById('rotate-range').addEventListener('input', (e)=>{ angle = parseFloat(e.target.value)*Math.PI/180; redraw(); });
-    document.getElementById('reset-view').addEventListener('click', ()=>{ zoom=1; angle=0; panX=0; panY=0; redraw(); document.getElementById('rotate-range').value = 0; });
-
-    // تطبيق القص — الحفظ في IndexedDB
-    document.getElementById('crop-apply').addEventListener('click', async ()=>{
-      const sx = sel.w<0 ? sel.x+sel.w : sel.x;
-      const sy = sel.h<0 ? sel.y+sel.h : sel.y;
-      const sw = Math.abs(sel.w), sh = Math.abs(sel.h);
-      if (sw<2 || sh<2){ closeCrop(); return; }
-
-      // ارسم الصورة (بدون مقابض) إلى كانفس مؤقت
-      const temp = document.createElement('canvas');
-      temp.width = cropCanvas.width; temp.height = cropCanvas.height;
-      const tctx = temp.getContext('2d');
-      tctx.save();
-      tctx.translate(cropCanvas.width/2 + panX, cropCanvas.height/2 + panY);
-      tctx.rotate(angle);
-      tctx.scale(zoom, zoom);
-      tctx.drawImage(img, -img.width/2, -img.height/2);
-      tctx.restore();
-
-      // ثم قص الجزء المحدد
-      const out = document.createElement('canvas');
-      out.width = Math.max(1, Math.round(sw));
-      out.height = Math.max(1, Math.round(sh));
-      out.getContext('2d').drawImage(temp, sx, sy, sw, sh, 0, 0, out.width, out.height);
-
-      const dataURL = out.toDataURL('image/png');
-
-      await saveTexture(cropWallKey, dataURL); // -> IndexedDB + URL
-      updatePreview(cropWallKey, ROOM.textures[cropWallKey]);
-      closeCrop();
-      await buildRoom();
-      saveState(); // الأبعاد فقط
-    });
-
-    function closeCrop(){ cropTool.style.display='none'; cropTool.setAttribute('aria-hidden','true'); cropWallKey=null; }
-    document.getElementById('crop-cancel').addEventListener('click', closeCrop);
-
-    function updatePreview(key, url){
-      const p = document.getElementById('preview-'+key);
-      if (p) p.innerHTML = url ? '<img src="'+url+'">' : '';
-    }
-
-    // ============ ربط مدخلات الصور ============
-    document.querySelectorAll('input[type="file"][data-wall]').forEach(input=>{
-      input.addEventListener('change', (e)=>{
-        const f = e.target.files && e.target.files[0];
-        if (!f) return;
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (ev)=>{
-          const base64 = ev.target.result;
-          const key = e.target.getAttribute('data-wall');
-          openCropUI(base64, key);
-          e.target.value='';
-        };
-        reader.readAsDataURL(f);
-      });
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+// 💡 وظيفة تحويل لون سداسي إلى Base64 Data URL
+function colorToDataURL(hexColor) {
+    // نستخدم قيمة HEX مباشرة، وهي قابلة للحفظ في localStorage
+    return hexColor; 
+}
+
+function saveStateToLocalStorage() {
+    localStorage.setItem('room_config', JSON.stringify({
+        dimensions: {
+            length: ROOM_DATA.length,
+            width: ROOM_DATA.width,
+            height: ROOM_DATA.height
+        },
+        textures: ROOM_DATA.textures, // يتم تخزين Base64 أو اللون HEX هنا
+        lightIntensity: directionalLight ? directionalLight.intensity : 0.8,
+        ambientIntensity: ambientLight ? ambientLight.intensity : 0.4,
+        autoRotate: controls ? controls.autoRotate : false
+    }));
+    console.log('✅ تم حفظ حالة الغرفة في المتصفح.');
+}
+
+function loadStateFromLocalStorage() {
+    const savedData = localStorage.getItem('room_config');
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        ROOM_DATA.length = parseFloat(data.dimensions.length) || ROOM_DATA.length;
+        ROOM_DATA.width = parseFloat(data.dimensions.width) || ROOM_DATA.width;
+        ROOM_DATA.height = parseFloat(data.dimensions.height) || ROOM_DATA.height;
+        
+        document.getElementById('room-length').value = ROOM_DATA.length;
+        document.getElementById('room-width').value = ROOM_DATA.width;
+        document.getElementById('room-height').value = ROOM_DATA.height;
+
+        if (data.textures) {
+            Object.assign(ROOM_DATA.textures, data.textures);
+            for (const wall in ROOM_DATA.textures) {
+                const url = ROOM_DATA.textures[wall];
+                const preview = document.getElementById(`preview-${wall}`);
+                if (preview && url) {
+                    // 💡 إصلاح منطق عرض المعاينة
+                    if (url.startsWith('#')) {
+                        // إذا كان لون سداسي
+                        preview.innerHTML = `<small style="background-color: ${url}; width: 100%; height: 100%; display: block;"></small>`;
+                        const colorInput = document.querySelector(`.color-picker-btn[data-wall="${wall}"] .color-input`);
+                        if(colorInput) colorInput.value = url;
+                    } else if (url.startsWith('data:')) {
+                        // إذا كانت صورة Base64
+                        preview.innerHTML = `<img src="${url}">`;
+                    }
+                }
+            }
+        }
+        
+        if (directionalLight) {
+            directionalLight.intensity = data.lightIntensity || 0.8;
+            document.getElementById('light-intensity').value = directionalLight.intensity;
+        }
+        if (ambientLight) {
+            ambientLight.intensity = data.ambientIntensity || 0.4;
+        }
+
+        if (controls) {
+            controls.autoRotate = data.autoRotate || true;
+        }
+
+        console.log('✅ تم تحميل حالة الغرفة من المتصفح.');
+        return true;
+    }
+    return false;
+}
+
+// --- وظائف إنشاء وعرض المشهد ---
+
+async function createTextureFromDataURL(url) {
+    if (!url) return null;
+
+    // 💡 إذا كانت القيمة لون سداسي، ننشئ نسيجًا بلون ثابت
+    if (url.startsWith('#')) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = url;
+        ctx.fillRect(0, 0, 1, 1);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.encoding = THREE.sRGBEncoding;
+        return texture;
+    }
+
+    return new Promise((resolve) => {
+        textureLoader.load(url, 
+            (texture) => {
+                texture.wrapS = THREE.RepeatWrapping;
+                texture.wrapT = THREE.RepeatWrapping;
+                texture.encoding = THREE.sRGBEncoding; 
+                resolve(texture);
+            },
+            undefined, 
+            () => resolve(null) 
+        );
+    });
+}
+
+function createWall(name, geo, material, position, rotation) {
+    const mesh = new THREE.Mesh(geo, material);
+    mesh.name = name;
+    mesh.position.set(position.x, position.y, position.z);
+    mesh.rotation.set(rotation.x, rotation.y, rotation.z);
+    return mesh;
+}
+
+async function buildScene() {
+    const L = parseFloat(ROOM_DATA.length);
+    const W = parseFloat(ROOM_DATA.width);
+    const H = parseFloat(ROOM_DATA.height);
+
+    scene.remove(sceneGroup);
+    disposeThreeObjects(sceneGroup);
+    sceneGroup = new THREE.Group(); 
+    
+    const textures = {};
+    for (const wall in ROOM_DATA.textures) {
+        textures[wall] = await createTextureFromDataURL(ROOM_DATA.textures[wall]);
+    }
+    
+    const walls = [
+        { name: 'Front_Wall', geo: new THREE.PlaneGeometry(L, H), map: textures.front, pos: { x: 0, y: 0, z: -W / 2 }, rot: { x: 0, y: 0, z: 0 }, dim: [L, H] },
+        { name: 'Back_Wall', geo: new THREE.PlaneGeometry(L, H), map: textures.back, pos: { x: 0, y: 0, z: W / 2 }, rot: { x: 0, y: Math.PI, z: 0 }, dim: [L, H] },
+        { name: 'Right_Wall', geo: new THREE.PlaneGeometry(W, H), map: textures.right, pos: { x: L / 2, y: 0, z: 0 }, rot: { x: 0, y: -Math.PI / 2, z: 0 }, dim: [W, H] },
+        { name: 'Left_Wall', geo: new THREE.PlaneGeometry(W, H), map: textures.left, pos: { x: -L / 2, y: 0, z: 0 }, rot: { x: 0, y: Math.PI / 2, z: 0 }, dim: [W, H] },
+        { name: 'Floor', geo: new THREE.PlaneGeometry(L, W), map: textures.floor, pos: { x: 0, y: -H / 2, z: 0 }, rot: { x: -Math.PI / 2, y: 0, z: 0 }, dim: [L, W] },
+        { name: 'Ceiling', geo: new THREE.PlaneGeometry(L, W), map: textures.ceiling, pos: { x: 0, y: H / 2, z: 0 }, rot: { x: Math.PI / 2, y: 0, z: 0 }, dim: [L, W] }
+    ];
+
+    walls.forEach(w => {
+        let materialColor = DEFAULT_WALL_COLOR;
+        if (w.name === 'Floor') materialColor = DEFAULT_FLOOR_COLOR;
+        if (w.name === 'Ceiling') materialColor = DEFAULT_CEILING_COLOR;
+
+        const materialColorBase = w.map ? 0xFFFFFF : materialColor;
+
+        const material = new THREE.MeshStandardMaterial({ 
+            map: w.map, 
+            side: THREE.DoubleSide, 
+            color: materialColorBase
+        });
+
+        if (w.map) {
+            w.map.repeat.set(1, 1);
+            w.map.offset.set(0, 0);
+        }
+
+        const mesh = createWall(w.name, w.geo, material, w.pos, w.rot);
+        sceneGroup.add(mesh);
     });
 
-    // ============ أزرار عامة ============
-    document.getElementById('update-room').addEventListener('click', ()=>{
-      ROOM.length = parseFloat(document.getElementById('room-length').value) || ROOM.length;
-      ROOM.width  = parseFloat(document.getElementById('room-width').value)  || ROOM.width;
-      ROOM.height = parseFloat(document.getElementById('room-height').value) || ROOM.height;
-      buildRoom();
+    updateCameraPosition(L, W, H);
+    scene.add(sceneGroup); 
+
+    document.getElementById('exportGLB').disabled = false; 
+    saveStateToLocalStorage();
+}
+
+
+function updateCameraPosition(L, W, H) {
+    camera.position.set(0, CAMERA_HEIGHT - (H / 2), 0);
+    controls.target.set(0, CAMERA_HEIGHT - (H / 2), 0);
+    controls.update();
+
+    const maxDim = Math.max(L, W, H);
+    camera.far = maxDim * 4;
+    camera.updateProjectionMatrix();
+
+    controls.maxDistance = maxDim * 0.8; 
+    controls.minDistance = 0.5; 
+}
+
+function initThree(){
+    const headerHeight = document.querySelector('header').offsetHeight;
+    const toolbarHeight = document.getElementById('toolbar').offsetHeight;
+    const canvasHeight = window.innerHeight - headerHeight - toolbarHeight;
+
+    renderer = new THREE.WebGLRenderer({canvas: document.getElementById('canvas3d'), antialias:true});
+    renderer.setSize(window.innerWidth, canvasHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding; 
+    
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+    renderer.info.render.textureCount = maxAnisotropy; 
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xEEEEEE); 
+
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / canvasHeight, 0.1, 100);
+    
+    ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+    
+    directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 5, 5).normalize();
+    scene.add(directionalLight);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement); 
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false; 
+    
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.0; 
+
+    controls.maxPolarAngle = Math.PI; 
+    controls.minPolarAngle = 0; 
+    
+    controls.addEventListener('start', () => {
+        controls.autoRotate = false;
+        clearTimeout(autoRotateTimeout); 
+    });
+    
+    controls.addEventListener('end', () => {
+        autoRotateTimeout = setTimeout(() => {
+            controls.autoRotate = true;
+            saveStateToLocalStorage(); 
+        }, 1500); 
     });
 
-    document.getElementById('clear-saved').addEventListener('click', async ()=>{
-      if (!confirm('مسح جميع الإعدادات والصور المحفوظة؟')) return;
-      try {
-        await idbClear();
-      } catch(e){ console.warn('مسح IDB فشل:', e); }
-      localStorage.removeItem(lsKey('dims'));
-      localStorage.removeItem('room_config_pro'); // لو باقي
-      // تنظيف أي مفاتيح قديمة بالصدفة
-      const oldKeys = [];
-      for (let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if (k && k.startsWith('room_pro_tex_')) oldKeys.push(k);
-      }
-      oldKeys.forEach(k=>localStorage.removeItem(k));
-
-      for (const k of KEYS) ROOM.textures[k] = null;
-      KEYS.forEach(k=>updatePreview(k, null));
-      buildRoom();
+    window.addEventListener('resize', ()=>{
+        updateRendererSize();
     });
 
-    // ============ ملء الشاشة ============
-    const fsBtn = document.getElementById('fullscreen-btn');
-    const viewer = document.getElementById('viewer-wrap');
-    function isFS(){ return !!document.fullscreenElement; }
-    fsBtn.addEventListener('click', ()=>{ isFS() ? document.exitFullscreen() : viewer.requestFullscreen(); });
-    document.addEventListener('fullscreenchange', ()=>{ fsBtn.textContent = isFS() ? '✖' : '⛶'; setViewerSize(); });
+    animate();
+    loadStateFromLocalStorage(); 
+}
 
-    // ============ تصدير / استيراد GLB ============
+function updateRendererSize() {
+    const canvas = document.getElementById('canvas3d');
+    const header = document.querySelector('header');
+    const toolbar = document.getElementById('toolbar');
+    
+    if (isFullscreen) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        header.style.display = 'none';
+        toolbar.style.display = 'none';
+    } else {
+        const headerHeight = header.offsetHeight;
+        const toolbarHeight = toolbar.offsetHeight;
+        const canvasHeight = window.innerHeight - headerHeight - toolbarHeight;
+        
+        renderer.setSize(window.innerWidth, canvasHeight);
+        camera.aspect = window.innerWidth / canvasHeight;
+        header.style.display = 'flex';
+        toolbar.style.display = 'flex';
+    }
+    camera.updateProjectionMatrix();
+}
+
+function animate(){
+    requestAnimationFrame(animate);
+    controls && controls.update();
+    renderer.render(scene, camera);
+}
+
+function setupEventListeners() {
+    // معالج تحديث الأبعاد
+    document.getElementById('update-room').addEventListener('click', async ()=>{
+        ROOM_DATA.length = document.getElementById('room-length').value;
+        ROOM_DATA.width = document.getElementById('room-width').value;
+        ROOM_DATA.height = document.getElementById('room-height').value;
+        await buildScene();
+    });
+
+    // 💡 معالج اختيار اللون المباشر
+    document.querySelectorAll('.color-input').forEach(input => {
+        input.addEventListener('change', async (e) => {
+            const wallName = e.target.closest('.color-picker-btn').getAttribute('data-wall');
+            const color = e.target.value;
+            const colorDataURL = colorToDataURL(color); // قيمة HEX #FFFFFF
+
+            if (colorDataURL && wallName) {
+                ROOM_DATA.textures[wallName] = colorDataURL; // تخزين القيمة السداسية
+
+                const preview = document.getElementById(`preview-${wallName}`);
+                if (preview) {
+                    preview.innerHTML = `<small style="background-color: ${color}; width: 100%; height: 100%; display: block;"></small>`;
+                }
+                await buildScene(); 
+            }
+        });
+    });
+
+
+    // معالج رفع الصورة ونافذة القص
+    document.querySelectorAll('.file-input').forEach(input => {
+        input.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            
+            const fileRow = e.target.closest('.file-row');
+            currentWallToCrop = fileRow.querySelector('.color-picker-btn').getAttribute('data-wall');
+            const base64Url = await fileToBase64(file);
+            
+            const cropTool = document.getElementById('crop-tool');
+            const cropImage = document.getElementById('crop-image');
+            
+            document.getElementById('rotate-slider').value = 0;
+            document.getElementById('rotate-value').value = 0;
+
+            if (cropperInstance) {
+                cropperInstance.destroy();
+            }
+            
+            cropImage.src = base64Url;
+            cropTool.style.display = 'flex';
+
+            setTimeout(() => {
+                cropperInstance = new Cropper(cropImage, {
+                    viewMode: 1, 
+                    dragMode: 'move', 
+                    aspectRatio: NaN, 
+                    autoCropArea: 0.8, 
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    responsive: true,
+                    restore: false
+                });
+            }, 100);
+            
+            e.target.value = '';
+        });
+    });
+    
+    // 💡 معالجات الدوران الدقيق
+    const rotateSlider = document.getElementById('rotate-slider');
+    const rotateValue = document.getElementById('rotate-value');
+
+    const updateRotation = (value) => {
+        if (!cropperInstance) return;
+        cropperInstance.rotateTo(parseFloat(value));
+    };
+
+    rotateSlider.addEventListener('input', (e) => {
+        const value = e.target.value;
+        rotateValue.value = value;
+        updateRotation(value);
+    });
+
+    rotateValue.addEventListener('change', (e) => {
+        const value = Math.max(-360, Math.min(360, parseFloat(e.target.value))); 
+        rotateSlider.value = value;
+        e.target.value = value;
+        updateRotation(value);
+    });
+
+    // 💡 معالجات الانعكاس
+    document.getElementById('crop-controls').addEventListener('click', (e) => {
+        const target = e.target;
+        const method = target.getAttribute('data-method');
+        const option = target.getAttribute('data-option');
+        
+        if (!cropperInstance || !method) return;
+
+        if (method === 'scaleX') {
+            cropperInstance.scaleX(cropperInstance.getData().scaleX === 1 ? -1 : 1);
+        } else if (method === 'scaleY') {
+            cropperInstance.scaleY(cropperInstance.getData().scaleY === 1 ? -1 : 1);
+        }
+    });
+
+    // تطبيق القص
+    document.getElementById('crop-apply').addEventListener('click', async () => {
+        const cropTool = document.getElementById('crop-tool');
+        const wallName = currentWallToCrop;
+
+        try {
+            if (!cropperInstance) return;
+
+            // 💡 تقليل الجودة وحجم الصورة لحل مشكلة تخزين الذاكرة (JPEG بجودة 0.7)
+            const croppedDataURL = cropperInstance.getCroppedCanvas({
+                fillColor: '#fff',
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            }).toDataURL('image/jpeg', 0.7); 
+
+            if (croppedDataURL && wallName) {
+                ROOM_DATA.textures[wallName] = croppedDataURL;
+
+                const preview = document.getElementById(`preview-${wallName}`);
+                if (preview) preview.innerHTML = `<img src="${croppedDataURL}">`;
+                
+                await buildScene(); 
+            }
+        } catch (error) {
+            console.error("❌ خطأ أثناء تطبيق القص أو الحفظ:", error);
+            alert("فشل تطبيق القص. قد تكون الذاكرة ممتلئة. حاول مسح المحفوظات.");
+        } finally {
+            // 💡 ضمان تدمير Cropper وإخفاء النافذة في جميع الأحوال
+            if (cropperInstance) {
+                cropperInstance.destroy();
+                cropperInstance = null;
+            }
+            cropTool.style.display = 'none';
+            currentWallToCrop = null;
+        }
+    });
+
+    // إلغاء القص
+    document.getElementById('crop-cancel').addEventListener('click', () => {
+        if (cropperInstance) {
+            cropperInstance.destroy(); 
+        }
+        document.getElementById('crop-tool').style.display = 'none';
+        currentWallToCrop = null;
+    });
+
+    // مسح المحفوظات
+    document.getElementById('clear-saved').addEventListener('click', () => {
+        if (confirm('هل أنت متأكد من مسح جميع إعدادات الغرفة المحفوظة؟')) {
+            localStorage.removeItem('room_config');
+            window.location.reload(); 
+        }
+    });
+
+    // دالة التصدير GLB
     document.getElementById('exportGLB').addEventListener('click', async ()=>{
-      if (!sceneGroup || sceneGroup.children.length===0){ alert('ابنِ الغرفة أولًا'); return; }
-      const exporter = new THREE.GLTFExporter();
-      try {
-        const glb = await new Promise((resolve,reject)=>{ exporter.parse(sceneGroup, resolve, { binary:true, embedImages:true }, reject); });
-        const blob = new Blob([glb], {type:'model/gltf-binary'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob); a.download = 'Room.glb';
-        document.body.appendChild(a); a.click();
-        setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-      } catch(err){ console.error('فشل التصدير:', err); alert('فشل التصدير إلى GLB'); }
+        if(sceneGroup.children.length === 0){
+            alert('يجب بناء الغرفة أولاً.');
+            return;
+        }
+        
+        const exporter = new THREE.GLTFExporter(); 
+        
+        try {
+            const gltfBinary = await new Promise((resolve, reject) => {
+                exporter.parse(sceneGroup, resolve, { binary: true, embedImages: true }, reject);
+            });
+
+            if (!gltfBinary || !(gltfBinary instanceof ArrayBuffer) || gltfBinary.byteLength < 50) {
+                throw new Error('gltfBinary غير صالح أو فارغ. (خطأ في التصدير).');
+            }
+            
+            const blob = new Blob([gltfBinary], { type: 'model/gltf-binary' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'Room_Model_Final.glb';
+            a.click();
+            URL.revokeObjectURL(a.href);
+
+        } catch (error) {
+            console.error('❌ خطأ غير متوقع أثناء التصدير:', error);
+            alert('فشل حفظ GLB. تحقق من وحدة التحكم (Console).');
+        }
     });
 
-    document.getElementById('importGLB').addEventListener('change', (e)=>{
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      const url = URL.createObjectURL(file);
-      const loader = new THREE.GLTFLoader();
-      loader.load(url, (gltf)=>{
-        scene.remove(sceneGroup);
-        disposeGroup(sceneGroup);
-        sceneGroup = new THREE.Group();
-        const imported = gltf.scene;
-        sceneGroup.add(imported);
-        scene.add(sceneGroup);
-        const box = new THREE.Box3().setFromObject(imported);
-        const center = new THREE.Vector3(); box.getCenter(center);
-        controls.target.copy(center); controls.update();
-        document.getElementById('exportGLB').disabled = false;
-        URL.revokeObjectURL(url);
-        alert('تم التحميل.');
-      }, undefined, (err)=>{ console.error('GLB فشل التحميل:', err); alert('فشل تحميل GLB'); });
+    // دالة تحميل GLB
+    document.getElementById('importGLB').addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+
+        const loader = new THREE.GLTFLoader(); 
+        
+        loader.load(url, (gltf) => {
+            scene.remove(sceneGroup); 
+            disposeThreeObjects(sceneGroup);
+            sceneGroup = new THREE.Group();
+            
+            const imported = gltf.scene;
+            sceneGroup.add(imported);
+            scene.add(sceneGroup); 
+
+            updateCameraPosition(ROOM_DATA.length, ROOM_DATA.width, ROOM_DATA.height);
+
+            URL.revokeObjectURL(url);
+            document.getElementById('exportGLB').disabled = false;
+            alert('تم تحميل الغرفة بنجاح.');
+        }, undefined, (err) => {
+            console.error('فشل تحميل GLB:', err);
+            alert('فشل تحميل GLB.');
+        });
     });
 
-    // ============ تشغيل ============
-    window.addEventListener('DOMContentLoaded', async ()=>{
-      initThree();
-      // هجرة أي تخزين قديم (مرة واحدة)
-      await migrateLegacy();
-      await loadState();     // يجلب الأبعاد + URLs من IDB
-      await buildRoom();     // يبني فورًا
+    // معالج ملء الشاشة
+    document.getElementById('fullscreen-btn').addEventListener('click', () => {
+        const canvas = document.getElementById('canvas3d');
+        const overlay = document.getElementById('canvas-overlay-tools');
+        const btn = document.getElementById('fullscreen-btn');
+
+        isFullscreen = !isFullscreen;
+
+        if (isFullscreen) {
+            canvas.classList.add('fullscreen-canvas');
+            btn.textContent = '❌'; 
+            overlay.style.position = 'fixed';
+            overlay.style.zIndex = 1000;
+        } else {
+            canvas.classList.remove('fullscreen-canvas');
+            btn.textContent = '◻️';
+            overlay.style.position = 'absolute';
+            overlay.style.zIndex = 10;
+        }
+        updateRendererSize();
     });
-  </script>
+
+    // معالج التحكم بشدة الإضاءة
+    document.getElementById('light-intensity').addEventListener('input', (e) => {
+        const intensity = parseFloat(e.target.value);
+        if (directionalLight) {
+            directionalLight.intensity = intensity;
+        }
+        if (ambientLight) {
+            ambientLight.intensity = intensity / 2;
+        }
+        saveStateToLocalStorage();
+    });
+}
+
+// التهيئة عند تحميل الصفحة
+window.addEventListener('DOMContentLoaded', async ()=>{
+    setupEventListeners(); 
+    initThree();
+    await buildScene(); 
+});
+</script>
+
 </body>
 </html>
